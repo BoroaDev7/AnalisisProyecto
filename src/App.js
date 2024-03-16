@@ -1,6 +1,6 @@
 import React from "react";
 import Tps from "./Tsp";
-import Hamilton from "./hamilton"
+//import Hamilton from "./hamilton";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,8 +11,12 @@ import {
 function Navigation() {
   let navigate = useNavigate();
 
-  return <button onClick={() => navigate("/tps")}>Ir a Tps</button>;
-   <button onClick={() =>navigate("/hamilton"}}> Ir a Hamilton </button>;
+  return (
+    <div>
+      <button onClick={() => navigate("/tps")}>Ir a Tps</button>
+      {/* //<button onClick={() => navigate("/hamilton")}>Ir a Hamilton</button> */}
+    </div>
+  );
 }
 
 function App() {
@@ -22,7 +26,7 @@ function App() {
         <Navigation />
         <Routes>
           <Route path="/tps" element={<Tps />} />
-          <Route path="/hamilton" element={<Hamilton/>}/>
+          {/* <Route path="/hamilton" element={<Hamilton />} /> */}
         </Routes>
       </div>
     </Router>
