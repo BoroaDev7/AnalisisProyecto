@@ -16,183 +16,184 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-function createIcon(number) {
+function crearIcono(numero) {
   return new DivIcon({
-    html: `<div style="background-color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; justify-content: center; align-items: center;">${number}</div>`,
+    html: `<div style="background-color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; justify-content: center; align-items: center;">${numero}</div>`,
     className: "",
     iconSize: [25, 25],
   });
 }
 
-function LocationMarker({ markers, setMarkers, tspPath }) {
+function MarcadorUbicacion({ marcadores, setMarcadores, caminoTSP }) {
   useMapEvents({
     click(e) {
-      const newMarkers = [...markers, e.latlng];
-      setMarkers(newMarkers);
+      const nuevosMarcadores = [...marcadores, e.latlng];
+      setMarcadores(nuevosMarcadores);
     },
     contextmenu(e) {
       e.originalEvent.preventDefault();
-      const newMarkers = markers.slice(0, markers.length - 1);
-      setMarkers(newMarkers);
+      const nuevosMarcadores = marcadores.slice(0, marcadores.length - 1);
+      setMarcadores(nuevosMarcadores);
     },
   });
 
   return (
     <>
-      {markers.map((position, idx) => (
-        <Marker key={idx} position={position} icon={createIcon(idx + 1)} />
+      {marcadores.map((position, idx) => (
+        <Marker key={idx} position={position} icon={crearIcono(idx + 1)} />
       ))}
       <Polyline
-        positions={markers.map((marker) => [marker.lat, marker.lng])}
+        positions={marcadores.map((marcador) => [marcador.lat, marcador.lng])}
         color="blue"
       />
-      <Polyline positions={tspPath} color="red" />
+      <Polyline positions={caminoTSP} color="red" />
     </>
   );
 }
 
-function Tsp() {
-  const [markers, setMarkers] = useState([]);
-  const [initialPathDistance, setInitialPathDistance] = useState(0);
-  const [tspPath, setTspPath] = useState([]);
-  const [tiempoAlg, setTiempoAlg] = useState(null);
-  const [numNodos, setNumNodos] = useState(0);
-  const [tspResults, setTspResults] = useState(null);
+function TSP() {
+  const [marcadores, setMarcadores] = useState([]);
+  const [distanciaInicial, setDistanciaInicial] = useState(0);
+  const [caminoTSP, setCaminoTSP] = useState([]);
+  const [tiempoAlgoritmo, setTiempoAlgoritmo] = useState(null);
+  const [numeroNodos, setNumeroNodos] = useState(0);
+  const [resultadosTSP, setResultadosTSP] = useState(null);
 
-  const generateRandomMarkers = (num) => {
-    const newMarkers = [];
-    const latRange = { min: 12.0, max: 16.0 };
-    const lngRange = { min: -89.0, max: -83.0 };
+  const generarMarcadoresAleatorios = (num) => {
+    const nuevosMarcadores = [];
+    const rangoLat = { min: 12.0, max: 16.0 };
+    const rangoLng = { min: -89.0, max: -83.0 };
 
     for (let i = 0; i < num; i++) {
-      const lat = Math.random() * (latRange.max - latRange.min) + latRange.min;
-      const lng = Math.random() * (lngRange.max - lngRange.min) + lngRange.min;
-      newMarkers.push(L.latLng(lat, lng));
+      const lat = Math.random() * (rangoLat.max - rangoLat.min) + rangoLat.min;
+      const lng = Math.random() * (rangoLng.max - rangoLng.min) + rangoLng.min;
+      nuevosMarcadores.push(L.latLng(lat, lng));
     }
-    setMarkers(newMarkers);
+    setMarcadores(nuevosMarcadores);
   };
 
-  const handleNumNodosChange = (e) => {
-    setNumNodos(parseInt(e.target.value) || 0);
+  const manejarCambioNumeroNodos = (e) => {
+    setNumeroNodos(parseInt(e.target.value) || 0);
   };
 
-  const addRandomMarkers = () => {
-    generateRandomMarkers(numNodos);
+  const agregarMarcadoresAleatorios = () => {
+    generarMarcadoresAleatorios(numeroNodos);
   };
 
-  const resetMap = () => {
-    setMarkers([]);
-    setTiempoAlg(0);
-    setInitialPathDistance(0);
-    setTspPath([]);
-    setTspResults(null);
+  const reiniciarMapa = () => {
+    setMarcadores([]);
+    setTiempoAlgoritmo(0);
+    setDistanciaInicial(0);
+    setCaminoTSP([]);
+    setResultadosTSP(null);
   };
 
-  function calculateTSP(points) {
-    if (points.length < 2) return;
+  const calcularTSP = (puntos) => {
+    if (puntos.length < 2) return;
 
-    const inicioAlgo = performance.now();
-    const latLngPoints = points.map((point) => L.latLng(point.lat, point.lng));
+    const inicioAlgoritmo = performance.now();
+    const puntosLatLng = puntos.map((punto) => L.latLng(punto.lat, punto.lng));
 
-    let path = [0];
-    let totalDistance = 0;
+    let camino = [0];
+    let distanciaTotal = 0;
 
-    for (let i = 0; i < latLngPoints.length - 1; i++) {
-      let last = path[path.length - 1];
-      let nextMinDist = Infinity;
-      let nextIndex = -1;
+    for (let i = 0; i < puntosLatLng.length - 1; i++) {
+      let ultimo = camino[camino.length - 1];
+      let distanciaMinimaProximo = Infinity;
+      let indiceProximo = -1;
 
-      for (let j = 0; j < latLngPoints.length; j++) {
-        if (!path.includes(j)) {
-          let dist = latLngPoints[last].distanceTo(latLngPoints[j]);
-          if (dist < nextMinDist) {
-            nextMinDist = dist;
-            nextIndex = j;
+      for (let j = 0; j < puntosLatLng.length; j++) {
+        if (!camino.includes(j)) {
+          let dist = puntosLatLng[ultimo].distanceTo(puntosLatLng[j]);
+          if (dist < distanciaMinimaProximo) {
+            distanciaMinimaProximo = dist;
+            indiceProximo = j;
           }
         }
       }
 
-      if (nextIndex !== -1) {
-        path.push(nextIndex);
-        totalDistance += nextMinDist;
+      if (indiceProximo !== -1) {
+        camino.push(indiceProximo);
+        distanciaTotal += distanciaMinimaProximo;
       }
     }
 
-    totalDistance += latLngPoints[path[0]].distanceTo(
-      latLngPoints[path[path.length - 1]]
+    distanciaTotal += puntosLatLng[camino[0]].distanceTo(
+      puntosLatLng[camino[camino.length - 1]]
     );
-    let initialDistance = totalDistance;
+    let distanciaInicial = distanciaTotal;
 
-    let improved = true;
-    while (improved) {
-      improved = false;
-      for (let i = 0; i < path.length - 1; i++) {
-        for (let j = i + 1; j < path.length; j++) {
-          if (twoOptSwap(latLngPoints, path, i, j)) {
-            improved = true;
+    let mejorado = true;
+    while (mejorado) {
+      mejorado = false;
+      for (let i = 0; i < camino.length - 1; i++) {
+        for (let j = i + 1; j < camino.length; j++) {
+          if (twoOptSwap(puntosLatLng, camino, i, j)) {
+            mejorado = true;
           }
         }
       }
     }
-    let adjList = path.map((current, index) => {
-      let next = path[(index + 1) % path.length];
+
+    let listaAdyacencia = camino.map((actual, indice) => {
+      let siguiente = camino[(indice + 1) % camino.length];
       return {
-        from: current,
-        to: next,
-        distance: latLngPoints[current].distanceTo(latLngPoints[next]),
+        from: actual,
+        to: siguiente,
+        distance: puntosLatLng[actual].distanceTo(puntosLatLng[siguiente]),
       };
     });
 
-    totalDistance = 0;
-    for (let i = 0; i < path.length - 1; i++) {
-      totalDistance += latLngPoints[path[i]].distanceTo(
-        latLngPoints[path[i + 1]]
+    distanciaTotal = 0;
+    for (let i = 0; i < camino.length - 1; i++) {
+      distanciaTotal += puntosLatLng[camino[i]].distanceTo(
+        puntosLatLng[camino[i + 1]]
       );
     }
-    totalDistance += latLngPoints[path[0]].distanceTo(
-      latLngPoints[path[path.length - 1]]
+    distanciaTotal += puntosLatLng[camino[0]].distanceTo(
+      puntosLatLng[camino[camino.length - 1]]
     );
 
-    setTiempoAlg(performance.now() - inicioAlgo);
+    setTiempoAlgoritmo(performance.now() - inicioAlgoritmo);
 
-    const latLngPath = path.map((index) => latLngPoints[index]);
-    latLngPath.push(latLngPoints[path[0]]);
-    setTspPath(latLngPath.map((point) => [point.lat, point.lng]));
-    setInitialPathDistance(initialDistance / 1000);
-    setTspResults({
-      totalDistance: totalDistance / 1000,
-      path: adjList,
-      initialDistance: initialDistance / 1000,
+    const caminoLatLng = camino.map((indice) => puntosLatLng[indice]);
+    caminoLatLng.push(puntosLatLng[camino[0]]);
+    setCaminoTSP(caminoLatLng.map((punto) => [punto.lat, punto.lng]));
+    setDistanciaInicial(distanciaInicial / 1000);
+    setResultadosTSP({
+      distanciaTotal: distanciaTotal / 1000,
+      camino: listaAdyacencia,
+      distanciaInicial: distanciaInicial / 1000,
     });
-  }
+  };
 
-  function twoOptSwap(latLngPoints, path, i, j) {
-    let distBefore =
-      latLngPoints[path[i]].distanceTo(latLngPoints[path[i + 1]]) +
-      latLngPoints[path[j]].distanceTo(
-        latLngPoints[path[(j + 1) % path.length]]
+  const twoOptSwap = (puntosLatLng, camino, i, j) => {
+    let distAntes =
+      puntosLatLng[camino[i]].distanceTo(puntosLatLng[camino[i + 1]]) +
+      puntosLatLng[camino[j]].distanceTo(
+        puntosLatLng[camino[(j + 1) % camino.length]]
       );
-    let distAfter =
-      latLngPoints[path[i]].distanceTo(latLngPoints[path[j]]) +
-      latLngPoints[path[i + 1]].distanceTo(
-        latLngPoints[path[(j + 1) % path.length]]
+    let distDespues =
+      puntosLatLng[camino[i]].distanceTo(puntosLatLng[camino[j]]) +
+      puntosLatLng[camino[i + 1]].distanceTo(
+        puntosLatLng[camino[(j + 1) % camino.length]]
       );
 
-    if (distAfter < distBefore) {
-      reversePathSegment(path, i + 1, j);
+    if (distDespues < distAntes) {
+      invertirSegmentoCamino(camino, i + 1, j);
       return true;
     }
 
     return false;
-  }
+  };
 
-  function reversePathSegment(path, start, end) {
-    while (start < end) {
-      [path[start], path[end]] = [path[end], path[start]];
-      start++;
-      end--;
+  const invertirSegmentoCamino = (camino, inicio, fin) => {
+    while (inicio < fin) {
+      [camino[inicio], camino[fin]] = [camino[fin], camino[inicio]];
+      inicio++;
+      fin--;
     }
-  }
+  };
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
@@ -206,41 +207,45 @@ function Tsp() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maxZoom={19}
           />
-          <LocationMarker
-            markers={markers}
-            setMarkers={setMarkers}
-            tspPath={tspPath}
+          <MarcadorUbicacion
+            marcadores={marcadores}
+            setMarcadores={setMarcadores}
+            caminoTSP={caminoTSP}
           />
         </MapContainer>
       </div>
       <div style={{ width: "20%", padding: "10px", overflowY: "auto" }}>
         <input
           type="number"
-          value={numNodos}
-          onChange={handleNumNodosChange}
+          value={numeroNodos}
+          onChange={manejarCambioNumeroNodos}
           placeholder="Número de nodos"
         />
-        <button onClick={addRandomMarkers}>Generar nodos aleatorios</button>
-        <button onClick={() => calculateTSP(markers)}>
+        <button onClick={agregarMarcadoresAleatorios}>
+          Generar nodos aleatorios
+        </button>
+        <button onClick={() => calcularTSP(marcadores)}>
           Iniciar simulación
         </button>
-        <button onClick={resetMap}>Resetear Mapa</button>
-        <p>Distancia total: {initialPathDistance.toFixed(2)} km</p>
+        <button onClick={reiniciarMapa}>Resetear Mapa</button>
+        <p>Distancia total: {distanciaInicial.toFixed(2)} km</p>
         <p>
-          Tiempo de ejecución del algoritmo: {(tiempoAlg / 1000).toFixed(3)}{" "}
-          segundos
+          Tiempo de ejecución del algoritmo:{" "}
+          {(tiempoAlgoritmo / 1000).toFixed(3)} segundos
         </p>
-        {tspResults && (
+        {resultadosTSP && (
           <div>
             <h3>Lista de Adyacencia (TSP)</h3>
-            {tspResults.path.map((entry, index) => (
+            {resultadosTSP.camino.map((entry, index) => (
               <div key={index}>
                 {`De ${entry.from + 1} a ${entry.to + 1} - Distancia: ${(
                   entry.distance / 1000
                 ).toFixed(2)} km`}
               </div>
             ))}
-            <p>Distancia total TSP: {tspResults.totalDistance.toFixed(2)} km</p>
+            <p>
+              Distancia total TSP: {resultadosTSP.distanciaTotal.toFixed(2)} km
+            </p>
           </div>
         )}
       </div>
@@ -248,4 +253,4 @@ function Tsp() {
   );
 }
 
-export default Tsp;
+export default TSP;
