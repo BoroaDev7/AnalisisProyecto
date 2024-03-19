@@ -6,109 +6,98 @@ const RandomGraph = () => {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [hamiltonianPath, setHamiltonianPath] = useState([]);
   const [hasHamiltonianCycle, setHasHamiltonianCycle] = useState(false);
-  // Dentro de la función generateRandomGraph
-// Dentro de la función generateRandomGraph
+  const [executionTime, setExecutionTime] = useState(null);
+  
 const generateRandomGraph = () => {
   const nodes = Array.from({ length: numNodes }, (_, i) => ({ id: i }));
   
   const links = [];
-  for (let i = 0; i < numNodes; i++) {
-    const numEdges = Math.floor(Math.random() * (numNodes - 1)); // Genera entre 0 y numNodes - 2 enlaces para cada nodo
-    const connectedNodes = new Set();
-    while (connectedNodes.size < numEdges) {
-      const target = Math.floor(Math.random() * numNodes);
-      if (target !== i) {
-        connectedNodes.add(target);
+
+  for (let i = 0; i < numNodes-1; i++) {
+    for (let j = i+1; j < numNodes; j++){
+      const probability = Math.floor(Math.random() * 2);
+      if( probability === 1){
+        links.push({ source: i, target: j});
       }
     }
-    connectedNodes.forEach(target => {
-      links.push({ source: i, target });
-    });
   }
 
-  //setGraphData({ nodes, links });
-  const hamiltonianPath = hasHamiltonian({ nodes, links });
-  setHamiltonianPath(hamiltonianPath);
-  setHasHamiltonianCycle(hamiltonianPath.length > 0);
-
-  // Si hay un ciclo hamiltoniano, establecer el color del ciclo en el grafo
-  if (hamiltonianPath.length > 0) {
-    const coloredNodes = [...nodes]; // Copiar los nodos
-    const coloredLinks = [...links]; // Copiar los enlaces
-    for (let i = 0; i < hamiltonianPath.length; i++) {
-      const currentNode = hamiltonianPath[i];
-      const nextNode = hamiltonianPath[(i + 1) % hamiltonianPath.length]; // El siguiente nodo es el primer nodo si estamos en el último nodo
-      // Colorear el nodo actual y el enlace que lo conecta con el siguiente nodo
-      coloredNodes[currentNode] = { ...coloredNodes[currentNode], color: "#FF0000" }; // Colorear el nodo actual en rojo
-      const linkIndex = coloredLinks.findIndex(link => (link.source === currentNode && link.target === nextNode) || (link.source === nextNode && link.target === currentNode));
-      coloredLinks[linkIndex] = { ...coloredLinks[linkIndex], color: "#FF0000" }; // Establecer color rojo para el enlace del ciclo
-    }
-    // Establecer el estado del grafo con nodos y enlaces coloreados
-    setGraphData({ nodes: coloredNodes, links: coloredLinks });
-  }
-  else{
-    setGraphData({ nodes, links });
-  }
+  setGraphData({ nodes, links });
+  setHasHamiltonianCycle(false);
+  setExecutionTime(null);
 };
 
 
 
   const handleNumNodesChange = (event) => {
     const value = parseInt(event.target.value, 10);
-    if (!isNaN(value)) { // Asegurar que el valor sea un número
+    if (!isNaN(value)) { 
       setNumNodes(value);
     }
   };
 
 
-  // Función para verificar si existe un ciclo hamiltoniano y devolver el camino del ciclo si existe
   const hasHamiltonian = (graphData) => {
-    const visited = new Array(graphData.nodes.length).fill(false); // Array para realizar seguimiento de los nodos visitados
-    const path = []; // Camino actual
-    const startNode = 0; // Empieza desde el nodo 0
+    const visited = new Array(graphData.nodes.length).fill(false); 
+    const path = []; 
   
-    const dfs = (currentNode, remainingNodes) => {
-      visited[currentNode] = true; // Marcar el nodo actual como visitado
-      path.push(currentNode); // Agregar el nodo actual al camino
-  
-      // Si se han visitado todos los nodos, entonces verificar si el último nodo se conecta con el nodo inicial
+    const search = (currentNode, remainingNodes) => {
+      visited[currentNode] = true; 
+      path.push(currentNode); 
+
       if (remainingNodes === 0) {
-        if (graphData.links.some(link => link.source === currentNode && link.target === startNode)) {
-          return true; // Se encontró un ciclo hamiltoniano
+        if (graphData.links.some(link => (link.source === currentNode && link.target === 0) || (link.source === 0 && link.target === currentNode))) {
+          return true; 
         } else {
-          visited[currentNode] = false; // Desmarcar el nodo actual
-          path.pop(); // Eliminar el nodo actual del camino
+          visited[currentNode] = false; 
+          path.pop(); 
           return false;
         }
       }
   
-      // Recorrer los nodos adyacentes no visitados
       for (let i = 0; i < graphData.nodes.length; i++) {
         if (!visited[i] && graphData.links.some(link => (link.source === currentNode && link.target === i) || (link.source === i && link.target === currentNode))) {
-          if (dfs(i, remainingNodes - 1)) {
+          if (search(i, remainingNodes - 1)) {
             return true;
           }
         }
       }
   
-      // Si no se encuentra un ciclo hamiltoniano a partir del nodo actual, retroceder
       visited[currentNode] = false;
       path.pop();
       return false;
     };
   
-    // Iniciar la búsqueda desde el nodo inicial
-    if (dfs(startNode, graphData.nodes.length - 1)) {
-      path.push(startNode); // Añadir el nodo inicial al final del camino para formar un ciclo
-      return path; // Devolver el camino del ciclo hamiltoniano
+    if (search(0, graphData.nodes.length - 1)) {
+      path.push(0);
+      return path;
     }
-    return []; // No se encontró ningún ciclo hamiltoniano
+    return []; 
   };
   
-
+  const findHamiltonianCycle = () => {
+    const startTime = performance.now(); 
+    const hamiltonianPath = hasHamiltonian({ nodes: graphData.nodes, links: graphData.links });
+    setHamiltonianPath(hamiltonianPath);
+    setHasHamiltonianCycle(hamiltonianPath.length > 0);
+    const endTime = performance.now(); 
+    setExecutionTime(endTime - startTime);
+    if (hamiltonianPath.length > 0) {
+      const coloredNodes = [...graphData.nodes]; 
+      const coloredLinks = [...graphData.links]; 
+      for (let i = 0; i < hamiltonianPath.length; i++) {
+        const currentNode = hamiltonianPath[i];
+        const nextNode = hamiltonianPath[(i + 1) % hamiltonianPath.length];
+        coloredNodes[currentNode] = { ...coloredNodes[currentNode], color: "#FF0000" }; 
+        const linkIndex = coloredLinks.findIndex(link => (link.source === currentNode && link.target === nextNode) || (link.source === nextNode && link.target === currentNode));
+        coloredLinks[linkIndex] = { ...coloredLinks[linkIndex], color: "#FF0000" }; 
+      }
+      setGraphData({ nodes: coloredNodes, links: coloredLinks });
+    }
+  };
 
   return (
-    <div style={{ height: "600px", border: "1px solid black" }}>
+    <div style={{ height: "700px", border: "1px solid black" }}>
       <Graph id="random-graph" data={graphData} config={{ directed: false }} />
       <div style={{ marginTop: "10px" }}>
         <label htmlFor="numNodesInput">Cantidad de Nodos:</label>
@@ -123,6 +112,15 @@ const generateRandomGraph = () => {
       <button onClick={generateRandomGraph} style={{ marginTop: "10px" }}>
         Generar Nuevo Grafo
       </button>
+      <button onClick={findHamiltonianCycle} style={{ marginTop: "10px", marginLeft: "10px" }}>
+        Encontrar Ciclo Hamiltoniano
+      </button>
+      <div style={{ marginTop: "10px" }}>
+        {graphData.nodes.length !== 0 && <p>Grafo Generado</p>}
+      </div>
+      <div style={{ marginTop: "10px" }}>
+        {executionTime !== null && <p>Tiempo de ejecución del algoritmo: {executionTime} milisegundos</p>}
+      </div>
       <div style={{ marginTop: "10px" }}>
         {hasHamiltonianCycle && (
           <div>
