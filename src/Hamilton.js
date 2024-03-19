@@ -12,18 +12,12 @@ const generateRandomGraph = () => {
   const nodes = Array.from({ length: numNodes }, (_, i) => ({ id: i }));
   
   const links = [];
-  for (let i = 0; i < numNodes; i++) {
-    const numEdges = Math.floor(Math.random() * (numNodes - 1)); 
-    const connectedNodes = new Set(); 
-    let attempts = 0; 
-  
-    while (connectedNodes.size < numEdges && attempts < numNodes) {
-      const target = Math.floor(Math.random() * numNodes);
-      if (target !== i && !connectedNodes.has(target) && !links.some(link => link.source === target && link.target === i)) {
-        connectedNodes.add(target);
-        links.push({ source: i, target });
-      } else {
-        attempts++; 
+
+  for (let i = 0; i < numNodes-1; i++) {
+    for (let j = i+1; j < numNodes; j++){
+      const probability = Math.floor(Math.random() * 2);
+      if( probability === 1){
+        links.push({ source: i, target: j});
       }
     }
   }
@@ -86,6 +80,8 @@ const generateRandomGraph = () => {
     const hamiltonianPath = hasHamiltonian({ nodes: graphData.nodes, links: graphData.links });
     setHamiltonianPath(hamiltonianPath);
     setHasHamiltonianCycle(hamiltonianPath.length > 0);
+    const endTime = performance.now(); 
+    setExecutionTime(endTime - startTime);
     if (hamiltonianPath.length > 0) {
       const coloredNodes = [...graphData.nodes]; 
       const coloredLinks = [...graphData.links]; 
@@ -98,8 +94,6 @@ const generateRandomGraph = () => {
       }
       setGraphData({ nodes: coloredNodes, links: coloredLinks });
     }
-    const endTime = performance.now(); 
-    setExecutionTime(endTime - startTime);
   };
 
   return (
@@ -121,6 +115,9 @@ const generateRandomGraph = () => {
       <button onClick={findHamiltonianCycle} style={{ marginTop: "10px", marginLeft: "10px" }}>
         Encontrar Ciclo Hamiltoniano
       </button>
+      <div style={{ marginTop: "10px" }}>
+        {graphData.nodes.length !== 0 && <p>Grafo Generado</p>}
+      </div>
       <div style={{ marginTop: "10px" }}>
         {executionTime !== null && <p>Tiempo de ejecución del algoritmo: {executionTime} milisegundos</p>}
       </div>
