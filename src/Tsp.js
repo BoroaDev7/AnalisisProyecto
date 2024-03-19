@@ -88,98 +88,102 @@ function Tsp() {
     setTspResults(null);
   };
 
-  const calculateTSP = (points) => {
+  function calculateTSP(points) {
     if (points.length < 2) return;
 
     const inicioAlgo = performance.now();
-    const path = [0];
-    let totalDistance = 0;
-    let adjacencyList = [];
+    const latLngPoints = points.map((point) => L.latLng(point.lat, point.lng));
 
-    while (path.length < points.length) {
+    let path = [0];
+    let totalDistance = 0;
+
+    for (let i = 0; i < latLngPoints.length - 1; i++) {
       let last = path[path.length - 1];
       let nextMinDist = Infinity;
       let nextIndex = -1;
 
-      for (let i = 0; i < points.length; i++) {
-        if (!path.includes(i)) {
-          let dist = points[last].distanceTo(points[i]);
+      for (let j = 0; j < latLngPoints.length; j++) {
+        if (!path.includes(j)) {
+          let dist = latLngPoints[last].distanceTo(latLngPoints[j]);
           if (dist < nextMinDist) {
             nextMinDist = dist;
-            nextIndex = i;
+            nextIndex = j;
           }
         }
       }
 
-      if (nextIndex >= 0) {
+      if (nextIndex !== -1) {
         path.push(nextIndex);
-        adjacencyList.push({
-          from: last,
-          to: nextIndex,
-          distance: nextMinDist,
-        });
         totalDistance += nextMinDist;
       }
     }
 
-    totalDistance += points[path[0]].distanceTo(points[path[path.length - 1]]);
-    adjacencyList.push({
-      from: path[path.length - 1],
-      to: path[0],
-      distance: points[path[0]].distanceTo(points[path[path.length - 1]]),
-    });
+    totalDistance += latLngPoints[path[0]].distanceTo(
+      latLngPoints[path[path.length - 1]]
+    );
+    let initialDistance = totalDistance;
 
     let improved = true;
     while (improved) {
       improved = false;
       for (let i = 0; i < path.length - 1; i++) {
         for (let j = i + 1; j < path.length; j++) {
-          if (twoOptSwap(points, path, i, j)) {
+          if (twoOptSwap(latLngPoints, path, i, j)) {
             improved = true;
           }
         }
       }
     }
-
-    totalDistance = 0;
-    adjacencyList = [];
-    for (let i = 0; i < path.length - 1; i++) {
-      let dist = points[path[i]].distanceTo(points[path[i + 1]]);
-      totalDistance += dist;
-      adjacencyList.push({ from: path[i], to: path[i + 1], distance: dist });
-    }
-    totalDistance += points[path[0]].distanceTo(points[path[path.length - 1]]);
-    adjacencyList.push({
-      from: path[path.length - 1],
-      to: path[0],
-      distance: points[path[0]].distanceTo(points[path[path.length - 1]]),
+    let adjList = path.map((current, index) => {
+      let next = path[(index + 1) % path.length];
+      return {
+        from: current,
+        to: next,
+        distance: latLngPoints[current].distanceTo(latLngPoints[next]),
+      };
     });
 
-    const finalAlgo = performance.now();
-    setTiempoAlg(finalAlgo - inicioAlgo);
-    setInitialPathDistance(totalDistance / 1000);
+    totalDistance = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      totalDistance += latLngPoints[path[i]].distanceTo(
+        latLngPoints[path[i + 1]]
+      );
+    }
+    totalDistance += latLngPoints[path[0]].distanceTo(
+      latLngPoints[path[path.length - 1]]
+    );
 
-    const latLngPath = path.map((index) => points[index]);
-    latLngPath.push(points[0]);
+    setTiempoAlg(performance.now() - inicioAlgo);
+
+    const latLngPath = path.map((index) => latLngPoints[index]);
+    latLngPath.push(latLngPoints[path[0]]);
     setTspPath(latLngPath.map((point) => [point.lat, point.lng]));
-    setTspResults({ path: adjacencyList, totalDistance: totalDistance / 1000 });
-  };
+    setInitialPathDistance(initialDistance / 1000);
+    setTspResults({
+      totalDistance: totalDistance / 1000,
+      path: adjList,
+      initialDistance: initialDistance / 1000,
+    });
+  }
 
-  function twoOptSwap(points, path, i, j) {
-    let needToSwap = false;
+  function twoOptSwap(latLngPoints, path, i, j) {
     let distBefore =
-      points[path[i]].distanceTo(points[path[i + 1]]) +
-      points[path[j]].distanceTo(points[path[(j + 1) % path.length]]);
+      latLngPoints[path[i]].distanceTo(latLngPoints[path[i + 1]]) +
+      latLngPoints[path[j]].distanceTo(
+        latLngPoints[path[(j + 1) % path.length]]
+      );
     let distAfter =
-      points[path[i]].distanceTo(points[path[j]]) +
-      points[path[i + 1]].distanceTo(points[path[(j + 1) % path.length]]);
+      latLngPoints[path[i]].distanceTo(latLngPoints[path[j]]) +
+      latLngPoints[path[i + 1]].distanceTo(
+        latLngPoints[path[(j + 1) % path.length]]
+      );
 
     if (distAfter < distBefore) {
-      needToSwap = true;
       reversePathSegment(path, i + 1, j);
+      return true;
     }
 
-    return needToSwap;
+    return false;
   }
 
   function reversePathSegment(path, start, end) {
