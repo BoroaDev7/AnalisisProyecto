@@ -36,3 +36,32 @@
     transform: rotate(360deg);
   }
 }
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.knapsack-container {
+  border: 1px solid #000;
+  margin-top: 10px;
+  position: relative;
+  height: 40px;
+  width: 100%;
+}
+
+.knapsack-fill {
+  height: 100%;
+  background-color: green;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: width 0.3s ease;
+}
+
+#result {
+  margin-top: 10px;
+}
