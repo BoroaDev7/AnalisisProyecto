@@ -6,6 +6,8 @@ function Knapsack() {
     const [capacity, setCapacity] = useState('');
     const [itemWeight, setItemWeight] = useState('');
     const [itemValue, setItemValue] = useState('');
+    const [executionTime, setExecutionTime] = useState(null);
+    const [knapsackResult, setKnapsackResult] = useState(null);
 
     const addItem = () => {
         const newItems = [...items, { weight: parseInt(itemWeight), value: parseInt(itemValue) }];
@@ -45,19 +47,25 @@ function Knapsack() {
         }
     };
 
+    const calculateKnapsack = () => {
+        const itemsCopy = [...items]; 
+        const start = performance.now();
+        const result = knapsackRecursive(
+            itemsCopy.map(item => item.weight),
+            itemsCopy.map(item => item.value),
+            parseInt(capacity),
+            itemsCopy.length
+        );
+        const end = performance.now();
+        setExecutionTime(end - start);
+        setKnapsackResult(result);
+    };
+
     const percentageFilled = () => {
+        if (!knapsackResult) return 0; 
         const totalWeight = knapsackResult.weight;
         return (totalWeight / parseInt(capacity)) * 100;
     };
-
-    const knapsackResult = knapsackRecursive(
-        items.map(item => item.weight),
-        items.map(item => item.value),
-        parseInt(capacity),
-        items.length
-    );
-
-    const selectedItems = knapsackResult.items.map(index => items[index]);
 
     return (
         <div className="container">
@@ -75,6 +83,7 @@ function Knapsack() {
                 <input type="number" id="itemValue" value={itemValue} onChange={e => setItemValue(e.target.value)} placeholder="Ingrese el valor" />
             </div>            
             <button onClick={addItem}>Agregar objeto</button>
+            <button onClick={calculateKnapsack}>Ejecutar Algoritmo</button>
             <div className="item-list">
                 {items.map((item, index) => (
                     <div key={index} className="item">
@@ -87,14 +96,15 @@ function Knapsack() {
                 <div className="knapsack-fill" style={{ width: `${percentageFilled()}%` }}></div>
             </div>
             <div id="result">
-                Máximo valor: {knapsackResult.value}<br />
+                Máximo valor: {knapsackResult ? knapsackResult.value : 'N/A'}<br />
                 Objetos en el contenedor:
-                {selectedItems.map((item, index) => (
+                {knapsackResult && knapsackResult.items.map((item, index) => (
                     <div key={index}>
-                        Peso: {item.weight}, Valor: {item.value}
+                        {items[item] && `Peso: ${items[item].weight}, Valor: ${items[item].value}`}
                     </div>
                 ))}
             </div>
+            <div>Tiempo de Ejecución: {executionTime} ms</div>
         </div>
     );
 }
