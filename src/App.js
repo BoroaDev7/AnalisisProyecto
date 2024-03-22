@@ -8,15 +8,25 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+import "./App.css";
 
 function Navigation() {
   let navigate = useNavigate();
 
   return (
-    <div>
-      <button onClick={() => navigate("/tps")}>Ir a Tps</button>
-      <button onClick={() => navigate("/hamilton")}>Ir a Hamilton</button>
-      <button onClick={() => navigate("/Knapsack")}>Ir a Knapsack</button>
+    <div className="body-container">
+      <h2 className="titulo">Bienvenido al Visualizador de Problemas NP</h2>
+      <div className="cards-container">
+        <div className="card">
+          <button onClick={() => navigate("/tps")}>Ir a Tps</button>
+        </div>
+        <div className="card">
+          <button onClick={() => navigate("/hamilton")}>Ir a Hamilton</button>
+        </div>
+        <div className="card">
+          <button onClick={() => navigate("/knapsack")}>Ir a Knapsack</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -24,16 +34,13 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div>
-        <Navigation />
-        <Routes>
-          <Route path="/tps" element={<Tps />} />
-          <Route path="/hamilton" element={<Hamilton />} />
-          <Route path="/Knapsack" element={<Knapsack />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Navigation />} />
+        <Route path="/tps" element={<Tps />} />
+        <Route path="/hamilton" element={<Hamilton />} />
+        <Route path="/knapsack" element={<Knapsack />} />
+      </Routes>
     </Router>
   );
 }
-
 export default App;

@@ -12,6 +12,22 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+.body-container {
+  background-color: #ecfeef; /* O el color que prefieras */
+  display: flex;
+  flex-direction: column; /* Esto organiza los elementos en columna */
+  align-items: center;
+  justify-content: flex-start; /* Alinea los elementos al inicio del contenedor */
+  min-height: 100vh;
+}
+
+.titulo {
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  width: 100%;
+  color: #282c34; /* O el color que prefieras */
+}
 
 .App-header {
   background-color: #282c34;
@@ -64,4 +80,42 @@
 
 #result {
   margin-top: 10px;
+}
+
+.body-container {
+  background-color: #ecfeef;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background-color: #6ea4bf;
+  margin: 10px;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  text-align: center;
+}
+
+.card img {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
+.card button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background-color: #dddddd;
 }
